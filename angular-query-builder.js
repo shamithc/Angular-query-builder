@@ -1,35 +1,59 @@
 var app = angular.module('app', ['ngSanitize', 'queryBuilder']);
-app.controller('QueryBuilderCtrl', ['$scope', function ($scope) {
-    var data = '{"group": {"operator": "AND","rules": []}}';
 
-    function htmlEntities(str) {
-        return String(str).replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
 
-    function computed(group) {
-        if (!group) return "";
-        for (var str = "(", i = 0; i < group.rules.length; i++) {
-            i > 0 && (str += " <strong>" + group.operator + "</strong> ");
-            str += group.rules[i].group ?
-                computed(group.rules[i].group) :
-                group.rules[i].field + " " + htmlEntities(group.rules[i].condition) + " " + group.rules[i].data;
-        }
+app.constant('URL', 'data/');
 
-        return str + ")";
-    }
+app.factory('DataService', function ($http, URL) {
+    var result;
+    var getData = function () {
+        return $http.get(URL + 'content.json');
+    };
+
+    result = getData();
+
+    return {
+        getData: function(){
+            return result
+        }  
+    };
+});
+
+app.factory('OpService', function ($http, URL) {
+    var result;
+    var getData = function () {
+        return $http.get(URL + 'operator.json');
+    };
+
+    result = getData();
+
+     return {
+        getData: function(){
+            return result
+        }  
+    };
+});
+
+app.controller('QueryBuilderCtrl', ['$scope', 'DataService', function ($scope, DataService) {
+    var data = '{ "group": { "operator": "AND", "rules": [ { "condition": "Equl", "field": 4, "data": "1", "$$hashKey": "005" }, { "group": { "operator": "AND", "rules": [ { "condition": "grater than", "field": 5, "data": "232", "$$hashKey": "00C" }, { "condition": "grater than or eql", "field": 4, "data": "123", "$$hashKey": "00F" }, { "group": { "operator": "AND", "rules": [ { "condition": "grater than", "field": 3, "data": "23", "$$hashKey": "00I" }, { "group": { "operator": "OR", "rules": [ { "group": { "operator": "OR", "rules": [ { "condition": "less than", "field": 11, "data": "23", "$$hashKey": "00T" } ] }, "$$hashKey": "00P" } ] }, "$$hashKey": "00L" } ] }, "$$hashKey": "00E" } ] }, "$$hashKey": "008" } ] } }';
 
     $scope.json = null;
 
     $scope.filter = JSON.parse(data);
-
     $scope.$watch('filter', function (newValue) {
         $scope.json = JSON.stringify(newValue, null, 2);
-        $scope.output = computed(newValue.group);
     }, true);
+
+    $scope.submitForm = function(isValid) {
+        if (isValid) {
+            alert('our form is amazing');
+        }
+    };
+
 }]);
 
 var queryBuilder = angular.module('queryBuilder', []);
-queryBuilder.directive('queryBuilder', ['$compile', function ($compile) {
+
+queryBuilder.directive('queryBuilder', ['$compile', 'DataService', 'OpService' ,function ($compile, DataService, OpService) {
     return {
         restrict: 'E',
         scope: {
@@ -39,33 +63,32 @@ queryBuilder.directive('queryBuilder', ['$compile', function ($compile) {
         compile: function (element, attrs) {
             var content, directive;
             content = element.contents().remove();
+            console.log(content);
             return function (scope, element, attrs) {
                 scope.operators = [
                     { name: 'AND' },
                     { name: 'OR' }
                 ];
 
-                scope.fields = [
-                    { name: 'Firstname' },
-                    { name: 'Lastname' },
-                    { name: 'Birthdate' },
-                    { name: 'City' },
-                    { name: 'Country' }
-                ];
+                getFields = function () {
+                    DataService.getData().then(function (result) {
+                        scope.fields = result.data;
+                    });
+                };
 
-                scope.conditions = [
-                    { name: '=' },
-                    { name: '<>' },
-                    { name: '<' },
-                    { name: '<=' },
-                    { name: '>' },
-                    { name: '>=' }
-                ];
+                getOp = function() {
+                    OpService.getData().then(function (result) {
+                        scope.conditions = result.data;
+                    });
+                };
+
+                getFields();
+                getOp();
 
                 scope.addCondition = function () {
                     scope.group.rules.push({
-                        condition: '=',
-                        field: 'Firstname',
+                        condition: 'Equl',
+                        field: 11,
                         data: ''
                     });
                 };
@@ -82,6 +105,17 @@ queryBuilder.directive('queryBuilder', ['$compile', function ($compile) {
                         }
                     });
                 };
+
+                scope.selectOp = function(t) {
+                    OpService.getData().then(function (result) {
+                        scope.conditions = result.data;
+                    });
+                }
+
+                scope.selectedOp = function(t){
+                    console.log(t);
+
+                }
 
                 scope.removeGroup = function () {
                     "group" in scope.$parent && scope.$parent.group.rules.splice(scope.$parent.$index, 1);

@@ -15,10 +15,13 @@
 
         <div class="alert alert-info">
             <strong>Example Output</strong><br>
-            <span ng-bind-html="output"></span>
+            <span ng-bind-html="json"></span>
         </div>
-
-        <query-builder group="filter.group"></query-builder>
+        
+        <form name="userForm" ng-submit="submitForm(userForm.$valid)" novalidate>
+            <query-builder group="filter.group"></query-builder>
+             <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
     </div>
 
     <script type="text/ng-template" id="/queryBuilderDirective.html">
@@ -37,9 +40,10 @@
                     </div>
                     <div ng-switch-default="ng-switch-default">
                         <div class="form-inline">
-                            <select ng-options="t.name as t.name for t in fields" ng-model="rule.field" class="form-control input-sm"></select>
+                            <select ng-options="t.id as t.name for t in fields" ng-model="rule.field" class="form-control input-sm" ng-change="selectOp(rule.field)" required></select>
                             <select style="margin-left: 5px" ng-options="c.name as c.name for c in conditions" ng-model="rule.condition" class="form-control input-sm"></select>
-                            <input style="margin-left: 5px" type="text" ng-model="rule.data" class="form-control input-sm"/>
+                            <input style="margin-left: 5px" type="text" name="rule.data" ng-model="rule.data" class="form-control input-sm" required />
+                            <p ng-show="userForm.rule.data.$invalid && !userForm.rule.data.$pristine" class="help-block">You name is required.</p>
                             <button style="margin-left: 5px" ng-click="removeCondition($index)" class="btn btn-sm btn-danger"><span class="glyphicon glyphicon-minus-sign"></span></button>
                         </div>
                     </div>

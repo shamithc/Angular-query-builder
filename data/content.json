@@ -1,0 +1,8 @@
+[
+    { "name": "FirstName", "id": 1 },
+    { "name": "Lastname", "id": 2 },
+    { "name": "Birthdate", "id": 3 },
+    { "name": "Birthdate", "id": 4 },
+    { "name": "City", "id": 5 },
+    { "name": "City", "id": 6    }
+]
