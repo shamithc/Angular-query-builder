@@ -1,0 +1,9 @@
+ [
+   { "name": "Equl_15" },
+   { "name": "Not Equl_15" },
+   { "name": "grater than_15" },
+   { "name": "less than_15" },
+   { "name": "less than or rql_15" },
+   { "name": "grater than or eql_15" },
+   { "name": "grater than or eql1_15" }
+]
